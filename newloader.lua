@@ -15,30 +15,48 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = PlayerGui
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 480, 0, 350)
-mainFrame.Position = UDim2.new(0.5, -240, 0.5, -175)
+mainFrame.Size = UDim2.new(0, 480, 0, 360)
+mainFrame.Position = UDim2.new(0.5, -240, 0.5, -180)
 mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
 
--- Animated glowing border
+-- Rainbow animated border
 local border = Instance.new("UIStroke", mainFrame)
 border.Thickness = 3
 border.LineJoinMode = Enum.LineJoinMode.Round
-border.Color = Color3.fromRGB(100, 180, 255)
 border.Transparency = 0
 
-local gradient = Instance.new("UIGradient", border)
-gradient.Rotation = 0
+local function HSVToRGB(h, s, v)
+    local c = v * s
+    local x = c * (1 - math.abs(((h * 6) % 2) - 1))
+    local m = v - c
+    local r, g, b = 0, 0, 0
 
--- Animate the border gradient rotation smoothly
+    if h < 1/6 then
+        r, g, b = c, x, 0
+    elseif h < 2/6 then
+        r, g, b = x, c, 0
+    elseif h < 3/6 then
+        r, g, b = 0, c, x
+    elseif h < 4/6 then
+        r, g, b = 0, x, c
+    elseif h < 5/6 then
+        r, g, b = x, 0, c
+    else
+        r, g, b = c, 0, x
+    end
+
+    return Color3.new(r + m, g + m, b + m)
+end
+
 spawn(function()
-	while true do
-		for i = 0, 360, 1 do
-			gradient.Rotation = i
-			RunService.RenderStepped:Wait()
-		end
-	end
+    local hue = 0
+    while true do
+        hue = (hue + 0.002) % 1
+        border.Color = HSVToRGB(hue, 1, 1)
+        RunService.RenderStepped:Wait()
+    end
 end)
 
 -- Top bar for dragging
@@ -50,7 +68,7 @@ topBar.Parent = mainFrame
 
 local title = Instance.new("TextLabel")
 title.Text = "Premium Hitbox & Speed UI"
-title.Size = UDim2.new(1, -60, 1, 0)
+title.Size = UDim2.new(1, -40, 1, 0)
 title.Position = UDim2.new(0, 10, 0, 0)
 title.BackgroundTransparency = 1
 title.TextColor3 = Color3.fromRGB(180, 220, 255)
@@ -69,41 +87,41 @@ closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextSize = 24
 closeBtn.Parent = topBar
 closeBtn.MouseButton1Click:Connect(function()
-	screenGui:Destroy()
+    screenGui:Destroy()
 end)
 
 -- Dragging logic
 local dragging, dragInput, dragStart, startPos
 
 local function update(input)
-	local delta = input.Position - dragStart
-	mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    local delta = input.Position - dragStart
+    mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
 
 topBar.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = mainFrame.Position
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
 
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
 end)
 
 topBar.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
-	end
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-	if dragging and input == dragInput then
-		update(input)
-	end
+    if dragging and input == dragInput then
+        update(input)
+    end
 end)
 
 -- Key input UI
@@ -128,7 +146,7 @@ keyInput.PlaceholderText = "Enter the secret key..."
 keyInput.Font = Enum.Font.Gotham
 keyInput.TextSize = 18
 keyInput.ClearTextOnFocus = false
-keyInput.Text = ""  -- <--- This makes it empty on start
+keyInput.Text = ""  -- Empty start
 keyInput.Parent = mainFrame
 
 local submitBtn = Instance.new("TextButton")
@@ -145,7 +163,7 @@ submitBtn.Parent = mainFrame
 
 -- Container for toggles (hidden initially)
 local togglesFrame = Instance.new("Frame")
-togglesFrame.Size = UDim2.new(1, -40, 0, 220)
+togglesFrame.Size = UDim2.new(1, -40, 0, 230)
 togglesFrame.Position = UDim2.new(0, 20, 0, 160)
 togglesFrame.BackgroundColor3 = Color3.fromRGB(24, 34, 52)
 togglesFrame.BorderSizePixel = 0
@@ -164,23 +182,23 @@ togglesTitle.Parent = togglesFrame
 
 -- Helper to create toggle buttons
 local function createToggleButton(text, posY)
-	local btn = Instance.new("TextButton")
-	btn.Text = text
-	btn.Size = UDim2.new(0.6, 0, 0, 45)
-	btn.Position = UDim2.new(0.2, 0, 0, posY)
-	btn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
-	btn.BorderSizePixel = 0
-	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 20
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.Parent = togglesFrame
-	return btn
+    local btn = Instance.new("TextButton")
+    btn.Text = text
+    btn.Size = UDim2.new(0.6, 0, 0, 40)
+    btn.Position = UDim2.new(0.2, 0, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
+    btn.BorderSizePixel = 0
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 18
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Parent = togglesFrame
+    return btn
 end
 
 local expandBtn = createToggleButton("Toggle Hitbox Expander + ESP", 50)
-local speedBtn = createToggleButton("Toggle Speed Boost", 105)
-local jumpBtn = createToggleButton("Toggle Jump Boost", 160)
-local infJumpBtn = createToggleButton("Toggle Infinite Jump", 215)
+local speedBtn = createToggleButton("Toggle Speed Boost", 100)
+local jumpBtn = createToggleButton("Toggle Jump Boost", 150)
+local infJumpBtn = createToggleButton("Toggle Infinite Jump", 200)
 
 -- States
 local hitboxExpanded = false
@@ -194,164 +212,136 @@ local boostedWalkSpeed = 50
 local defaultJumpPower = 50
 local boostedJumpPower = 100
 
--- Store original part sizes and outlines so we can revert changes
+-- Store original sizes & ESP adorns for all players
 local originalSizes = {}
 local espOutlines = {}
 
 local function clearESP()
-	for part, adorn in pairs(espOutlines) do
-		if adorn and adorn.Parent then
-			adorn:Destroy()
-		end
-	end
-	espOutlines = {}
+    for part, adorn in pairs(espOutlines) do
+        if adorn and adorn.Parent then
+            adorn:Destroy()
+        end
+    end
+    espOutlines = {}
 end
 
-local function resetHitbox(target)
-	if target and target.Character then
-		for _, part in pairs(target.Character:GetDescendants()) do
-			if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-				local originalSize = originalSizes[part]
-				if originalSize then
-					part.Size = originalSize
-					part.Transparency = 0
-				end
-			end
-		end
-	end
-	clearESP()
-	originalSizes = {}
+local function resetHitboxes()
+    for player, parts in pairs(originalSizes) do
+        if player.Character then
+            for part, size in pairs(parts) do
+                if part and part.Parent then
+                    part.Size = size
+                    part.Transparency = 0
+                end
+            end
+        end
+    end
+    originalSizes = {}
+    clearESP()
 end
 
 local function createESP(part)
-	if espOutlines[part] then return end -- already has ESP
+    if espOutlines[part] then return end -- Already has ESP
 
-	local adorn = Instance.new("BoxHandleAdornment")
-	adorn.Adornee = part
-	adorn.AlwaysOnTop = true
-	adorn.ZIndex = 10
-	adorn.Transparency = 0.5
-	adorn.Size = part.Size + Vector3.new(0.1, 0.1, 0.1)
-	adorn.Color3 = Color3.fromRGB(0, 200, 255)
-	adorn.Parent = part
-	espOutlines[part] = adorn
+    local adorn = Instance.new("BoxHandleAdornment")
+    adorn.Adornee = part
+    adorn.AlwaysOnTop = true
+    adorn.ZIndex = 10
+    adorn.Transparency = 0.5
+    adorn.Size = part.Size + Vector3.new(0.1, 0.1, 0.1)
+    adorn.Color3 = Color3.fromRGB(0, 200, 255)
+    adorn.Parent = part
+    espOutlines[part] = adorn
 end
 
-local function expandHitbox(target)
-	if target and target.Character then
-		for _, part in pairs(target.Character:GetDescendants()) do
-			if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-				if not originalSizes[part] then
-					originalSizes[part] = part.Size
-				end
-				part.Size = Vector3.new(10, 10, 10)
-				part.Transparency = 0.3
-				createESP(part)
-			end
-		end
-	end
+local function expandHitboxes()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character then
+            originalSizes[player] = originalSizes[player] or {}
+            for _, part in pairs(player.Character:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    if not originalSizes[player][part] then
+                        originalSizes[player][part] = part.Size
+                    end
+                    part.Size = Vector3.new(10, 10, 10)
+                    part.Transparency = 0.3
+                    createESP(part)
+                end
+            end
+        end
+    end
 end
 
 local function toggleHitbox()
-	local targetName = targetInput.Text
-	local targetPlayer = Players:FindFirstChild(targetName)
-	if not targetPlayer then
-		warn("Target player not found!")
-		return
-	end
-	if hitboxExpanded then
-		resetHitbox(targetPlayer)
-		hitboxExpanded = false
-		expandBtn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
-	else
-		expandHitbox(targetPlayer)
-		hitboxExpanded = true
-		expandBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-	end
+    if hitboxExpanded then
+        resetHitboxes()
+        hitboxExpanded = false
+        expandBtn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
+    else
+        expandHitboxes()
+        hitboxExpanded = true
+        expandBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+    end
 end
 
 local function toggleSpeed()
-	if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then return end
-	local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then return end
+    local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 
-	if speedBoosted then
-		humanoid.WalkSpeed = defaultWalkSpeed
-		speedBoosted = false
-		speedBtn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
-	else
-		humanoid.WalkSpeed = boostedWalkSpeed
-		speedBoosted = true
-		speedBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-	end
+    if speedBoosted then
+        humanoid.WalkSpeed = defaultWalkSpeed
+        speedBoosted = false
+        speedBtn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
+    else
+        humanoid.WalkSpeed = boostedWalkSpeed
+        speedBoosted = true
+        speedBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+    end
 end
 
 local function toggleJump()
-	if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then return end
-	local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then return end
+    local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 
-	if jumpBoosted then
-		humanoid.JumpPower = defaultJumpPower
-		jumpBoosted = false
-		jumpBtn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
-	else
-		humanoid.JumpPower = boostedJumpPower
-		jumpBoosted = true
-		jumpBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-	end
+    if jumpBoosted then
+        humanoid.JumpPower = defaultJumpPower
+        jumpBoosted = false
+        jumpBtn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
+    else
+        humanoid.JumpPower = boostedJumpPower
+        jumpBoosted = true
+        jumpBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+    end
 end
 
 -- Infinite jump fix with holding spacebar
 local infJumpConnection
 
 local function onInputBegan(input, gameProcessed)
-	if infJumpEnabled and not gameProcessed then
-		if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
-			local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-			if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Freefall then
-				humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-			end
-		end
-	end
+    if infJumpEnabled and not gameProcessed then
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
+            local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end
 end
 
 local function toggleInfJump()
-	if infJumpEnabled then
-		infJumpEnabled = false
-		infJumpBtn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
-		if infJumpConnection then
-			infJumpConnection:Disconnect()
-			infJumpConnection = nil
-		end
-	else
-		infJumpEnabled = true
-		infJumpBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-		infJumpConnection = UserInputService.InputBegan:Connect(onInputBegan)
-	end
+    if infJumpEnabled then
+        infJumpEnabled = false
+        infJumpBtn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
+        if infJumpConnection then
+            infJumpConnection:Disconnect()
+            infJumpConnection = nil
+        end
+    else
+        infJumpEnabled = true
+        infJumpBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+        infJumpConnection = UserInputService.InputBegan:Connect(onInputBegan)
+    end
 end
-
--- Target username input label
-local targetLabel = Instance.new("TextLabel")
-targetLabel.Text = "Target Username:"
-targetLabel.Size = UDim2.new(0, 140, 0, 25)
-targetLabel.Position = UDim2.new(0.1, 0, 0, 180)
-targetLabel.BackgroundTransparency = 1
-targetLabel.TextColor3 = Color3.fromRGB(180, 220, 255)
-targetLabel.Font = Enum.Font.Gotham
-targetLabel.TextSize = 16
-targetLabel.TextXAlignment = Enum.TextXAlignment.Left
-targetLabel.Parent = togglesFrame
-
-local targetInput = Instance.new("TextBox")
-targetInput.Size = UDim2.new(0.6, 0, 0, 25)
-targetInput.Position = UDim2.new(0.5, 0, 0, 180)
-targetInput.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-targetInput.BorderSizePixel = 0
-targetInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-targetInput.PlaceholderText = "PlayerName"
-targetInput.Font = Enum.Font.Gotham
-targetInput.TextSize = 16
-targetInput.ClearTextOnFocus = false
-targetInput.Parent = togglesFrame
 
 -- Connect buttons
 expandBtn.MouseButton1Click:Connect(toggleHitbox)
@@ -363,12 +353,12 @@ infJumpBtn.MouseButton1Click:Connect(toggleInfJump)
 local correctKey = "rizzful"
 
 submitBtn.MouseButton1Click:Connect(function()
-	if keyInput.Text:lower() == correctKey then
-		keyInput.Visible = false
-		keyLabel.Visible = false
-		submitBtn.Visible = false
-		togglesFrame.Visible = true
-	else
-		LocalPlayer:Kick("Incorrect key entered.")
-	end
+    if keyInput.Text:lower() == correctKey then
+        keyInput.Visible = false
+        keyLabel.Visible = false
+        submitBtn.Visible = false
+        togglesFrame.Visible = true
+    else
+        LocalPlayer:Kick("Incorrect key entered.")
+    end
 end)
