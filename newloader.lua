@@ -163,7 +163,7 @@ submitBtn.Parent = mainFrame
 
 -- Container for toggles (hidden initially)
 local togglesFrame = Instance.new("Frame")
-togglesFrame.Size = UDim2.new(1, -40, 0, 230)
+togglesFrame.Size = UDim2.new(1, -40, 0, 180)  -- adjusted smaller height
 togglesFrame.Position = UDim2.new(0, 20, 0, 160)
 togglesFrame.BackgroundColor3 = Color3.fromRGB(24, 34, 52)
 togglesFrame.BorderSizePixel = 0
@@ -195,13 +195,12 @@ local function createToggleButton(text, posY)
     return btn
 end
 
-local expandBtn = createToggleButton("Toggle Hitbox Expander + ESP", 50)
-local speedBtn = createToggleButton("Toggle Speed Boost", 100)
-local jumpBtn = createToggleButton("Toggle Jump Boost", 150)
-local infJumpBtn = createToggleButton("Toggle Infinite Jump", 200)
+local expandBtn = createToggleButton("Toggle Hitbox ESP", 40)
+local speedBtn = createToggleButton("Toggle Speed Boost", 85)
+local jumpBtn = createToggleButton("Toggle Jump Boost", 130)
+local infJumpBtn = createToggleButton("Toggle Infinite Jump", 175)
 
 -- States
-local hitboxExpanded = false
 local speedBoosted = false
 local jumpBoosted = false
 local infJumpEnabled = false
@@ -212,12 +211,11 @@ local boostedWalkSpeed = 50
 local defaultJumpPower = 50
 local boostedJumpPower = 100
 
--- Store original sizes & ESP adorns for all players
-local originalSizes = {}
+-- ESP tracking
 local espOutlines = {}
 
 local function clearESP()
-    for part, adorn in pairs(espOutlines) do
+    for _, adorn in pairs(espOutlines) do
         if adorn and adorn.Parent then
             adorn:Destroy()
         end
@@ -225,61 +223,25 @@ local function clearESP()
     espOutlines = {}
 end
 
-local function resetHitboxes()
-    for player, parts in pairs(originalSizes) do
-        if player.Character then
-            for part, size in pairs(parts) do
-                if part and part.Parent then
-                    part.Size = size
-                    part.Transparency = 0
-                end
-            end
-        end
-    end
-    originalSizes = {}
-    clearESP()
-end
-
-local function createESP(part)
-    if espOutlines[part] then return end -- Already has ESP
-
-    local adorn = Instance.new("BoxHandleAdornment")
-    adorn.Adornee = part
-    adorn.AlwaysOnTop = true
-    adorn.ZIndex = 10
-    adorn.Transparency = 0.5
-    adorn.Size = part.Size + Vector3.new(0.1, 0.1, 0.1)
-    adorn.Color3 = Color3.fromRGB(0, 200, 255)
-    adorn.Parent = part
-    espOutlines[part] = adorn
-end
-
-local function expandHitboxes()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.Character then
-            originalSizes[player] = originalSizes[player] or {}
-            for _, part in pairs(player.Character:GetDescendants()) do
-                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                    if not originalSizes[player][part] then
-                        originalSizes[player][part] = part.Size
-                    end
-                    part.Size = Vector3.new(10, 10, 10)
-                    part.Transparency = 0.3
-                    createESP(part)
-                end
-            end
-        end
-    end
-end
-
-local function toggleHitbox()
-    if hitboxExpanded then
-        resetHitboxes()
-        hitboxExpanded = false
+local function toggleHitboxESP()
+    if next(espOutlines) then
+        clearESP()
         expandBtn.BackgroundColor3 = Color3.fromRGB(80, 160, 255)
     else
-        expandHitboxes()
-        hitboxExpanded = true
+        for _, player in pairs(Players:GetPlayers()) do
+            local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local adorn = Instance.new("BoxHandleAdornment")
+                adorn.Adornee = hrp
+                adorn.AlwaysOnTop = true
+                adorn.ZIndex = 10
+                adorn.Transparency = 0.4
+                adorn.Size = hrp.Size + Vector3.new(1, 3, 1)
+                adorn.Color3 = Color3.fromRGB(0, 170, 255)
+                adorn.Parent = hrp
+                espOutlines[hrp] = adorn
+            end
+        end
         expandBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
     end
 end
@@ -344,7 +306,7 @@ local function toggleInfJump()
 end
 
 -- Connect buttons
-expandBtn.MouseButton1Click:Connect(toggleHitbox)
+expandBtn.MouseButton1Click:Connect(toggleHitboxESP)
 speedBtn.MouseButton1Click:Connect(toggleSpeed)
 jumpBtn.MouseButton1Click:Connect(toggleJump)
 infJumpBtn.MouseButton1Click:Connect(toggleInfJump)
