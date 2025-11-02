@@ -196,39 +196,3 @@ submit.MouseButton1Click:Connect(function()
         LocalPlayer:Kick("Incorrect key.")
     end
 end)
--- Create the minimize button
-local minBtn = Instance.new("TextButton", mainFrame)
-minBtn.Size       = UDim2.new(0, 30, 0, 30)
-minBtn.Position   = UDim2.new(1, -35, 0, 5)
-minBtn.Text       = "-"
-minBtn.Font       = Enum.Font.GothamBold
-minBtn.TextSize   = 22
-minBtn.TextColor3 = Color3.fromRGB(255,255,255)
-minBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-minBtn.BorderSizePixel  = 0
-
--- State flag
-local isMinimized = false
-
-minBtn.MouseButton1Click:Connect(function()
-    if not isMinimized then
-        -- Minimize: hide everything except the top bar
-        for _, child in ipairs(mainFrame:GetChildren()) do
-            if child ~= minBtn and child ~= topBar then
-                child.Visible = false
-            end
-        end
-        -- optionally shrink the frame
-        mainFrame.Size     = UDim2.new(0, 480, 0, 40)
-        isMinimized = true
-        minBtn.Text = "+"
-    else
-        -- Restore: show children and original size
-        for _, child in ipairs(mainFrame:GetChildren()) do
-            child.Visible = true
-        end
-        mainFrame.Size     = UDim2.new(0, 480, 0, 360)
-        isMinimized = false
-        minBtn.Text = "-"
-    end
-end)
